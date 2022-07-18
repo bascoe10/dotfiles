@@ -38,120 +38,120 @@ fi
 # ###########################################################
 # /etc/hosts -- spyware/ad blocking
 # ###########################################################
-read -r -p "Overwrite /etc/hosts with the ad-blocking hosts file from someonewhocares.org? (from ./configs/hosts file) [y|N] " response
-if [[ $response =~ (yes|y|Y) ]];then
-    action "cp /etc/hosts /etc/hosts.backup"
-    sudo cp /etc/hosts /etc/hosts.backup
-    ok
-    action "cp ./configs/hosts /etc/hosts"
-    sudo cp ./configs/hosts /etc/hosts
-    ok
-    bot "Your /etc/hosts file has been updated. Last version is saved in /etc/hosts.backup"
-else
-    ok "skipped";
-fi
+# read -r -p "Overwrite /etc/hosts with the ad-blocking hosts file from someonewhocares.org? (from ./configs/hosts file) [y|N] " response
+# if [[ $response =~ (yes|y|Y) ]];then
+#     action "cp /etc/hosts /etc/hosts.backup"
+#     sudo cp /etc/hosts /etc/hosts.backup
+#     ok
+#     action "cp ./configs/hosts /etc/hosts"
+#     sudo cp ./configs/hosts /etc/hosts
+#     ok
+#     bot "Your /etc/hosts file has been updated. Last version is saved in /etc/hosts.backup"
+# else
+#     ok "skipped";
+# fi
 
 # ###########################################################
 # Git Config
 # ###########################################################
-bot "OK, now I am going to update the .gitconfig for your user info:"
-grep 'user = GITHUBUSER' ./homedir/.gitconfig > /dev/null 2>&1
-if [[ $? = 0 ]]; then
-    read -r -p "What is your git username? " githubuser
+# bot "OK, now I am going to update the .gitconfig for your user info:"
+# grep 'user = GITHUBUSER' ./homedir/.gitconfig > /dev/null 2>&1
+# if [[ $? = 0 ]]; then
+#     read -r -p "What is your git username? " githubuser
 
-  fullname=`osascript -e "long user name of (system info)"`
+#   fullname=`osascript -e "long user name of (system info)"`
 
-  if [[ -n "$fullname" ]];then
-    lastname=$(echo $fullname | awk '{print $2}');
-    firstname=$(echo $fullname | awk '{print $1}');
-  fi
+#   if [[ -n "$fullname" ]];then
+#     lastname=$(echo $fullname | awk '{print $2}');
+#     firstname=$(echo $fullname | awk '{print $1}');
+#   fi
 
-  if [[ -z $lastname ]]; then
-    lastname=`dscl . -read /Users/$(whoami) | grep LastName | sed "s/LastName: //"`
-  fi
-  if [[ -z $firstname ]]; then
-    firstname=`dscl . -read /Users/$(whoami) | grep FirstName | sed "s/FirstName: //"`
-  fi
-  email=`dscl . -read /Users/$(whoami)  | grep EMailAddress | sed "s/EMailAddress: //"`
+#   if [[ -z $lastname ]]; then
+#     lastname=`dscl . -read /Users/$(whoami) | grep LastName | sed "s/LastName: //"`
+#   fi
+#   if [[ -z $firstname ]]; then
+#     firstname=`dscl . -read /Users/$(whoami) | grep FirstName | sed "s/FirstName: //"`
+#   fi
+#   email=`dscl . -read /Users/$(whoami)  | grep EMailAddress | sed "s/EMailAddress: //"`
 
-  if [[ ! "$firstname" ]]; then
-    response='n'
-  else
-    echo -e "I see that your full name is $COL_YELLOW$firstname $lastname$COL_RESET"
-    read -r -p "Is this correct? [Y|n] " response
-  fi
+#   if [[ ! "$firstname" ]]; then
+#     response='n'
+#   else
+#     echo -e "I see that your full name is $COL_YELLOW$firstname $lastname$COL_RESET"
+#     read -r -p "Is this correct? [Y|n] " response
+#   fi
 
-  if [[ $response =~ ^(no|n|N) ]]; then
-    read -r -p "What is your first name? " firstname
-    read -r -p "What is your last name? " lastname
-  fi
-  fullname="$firstname $lastname"
+#   if [[ $response =~ ^(no|n|N) ]]; then
+#     read -r -p "What is your first name? " firstname
+#     read -r -p "What is your last name? " lastname
+#   fi
+#   fullname="$firstname $lastname"
 
-  bot "Great $fullname, "
+#   bot "Great $fullname, "
 
-  if [[ ! $email ]]; then
-    response='n'
-  else
-    echo -e "The best I can make out, your email address is $COL_YELLOW$email$COL_RESET"
-    read -r -p "Is this correct? [Y|n] " response
-  fi
+#   if [[ ! $email ]]; then
+#     response='n'
+#   else
+#     echo -e "The best I can make out, your email address is $COL_YELLOW$email$COL_RESET"
+#     read -r -p "Is this correct? [Y|n] " response
+#   fi
 
-  if [[ $response =~ ^(no|n|N) ]]; then
-    read -r -p "What is your email? " email
-    if [[ ! $email ]];then
-      error "you must provide an email to configure .gitconfig"
-      exit 1
-    fi
-  fi
+#   if [[ $response =~ ^(no|n|N) ]]; then
+#     read -r -p "What is your email? " email
+#     if [[ ! $email ]];then
+#       error "you must provide an email to configure .gitconfig"
+#       exit 1
+#     fi
+#   fi
 
 
-  running "replacing items in .gitconfig with your info ($COL_YELLOW$fullname, $email, $githubuser$COL_RESET)"
+#   running "replacing items in .gitconfig with your info ($COL_YELLOW$fullname, $email, $githubuser$COL_RESET)"
 
-  # test if gnu-sed or MacOS sed
+#   # test if gnu-sed or MacOS sed
 
-  sed -i "s/GITHUBFULLNAME/$firstname $lastname/" ./homedir/.gitconfig > /dev/null 2>&1 || true
-  if [[ ${PIPESTATUS[0]} != 0 ]]; then
-    echo
-    running "looks like you are using MacOS sed rather than gnu-sed, accommodating"
-    sed -i '' "s/GITHUBFULLNAME/$firstname $lastname/" ./homedir/.gitconfig
-    sed -i '' 's/GITHUBEMAIL/'$email'/' ./homedir/.gitconfig
-    sed -i '' 's/GITHUBUSER/'$githubuser'/' ./homedir/.gitconfig
-    ok
-  else
-    echo
-    bot "looks like you are already using gnu-sed. woot!"
-    sed -i 's/GITHUBEMAIL/'$email'/' ./homedir/.gitconfig
-    sed -i 's/GITHUBUSER/'$githubuser'/' ./homedir/.gitconfig
-  fi
-fi
+#   sed -i "s/GITHUBFULLNAME/$firstname $lastname/" ./homedir/.gitconfig > /dev/null 2>&1 || true
+#   if [[ ${PIPESTATUS[0]} != 0 ]]; then
+#     echo
+#     running "looks like you are using MacOS sed rather than gnu-sed, accommodating"
+#     sed -i '' "s/GITHUBFULLNAME/$firstname $lastname/" ./homedir/.gitconfig
+#     sed -i '' 's/GITHUBEMAIL/'$email'/' ./homedir/.gitconfig
+#     sed -i '' 's/GITHUBUSER/'$githubuser'/' ./homedir/.gitconfig
+#     ok
+#   else
+#     echo
+#     bot "looks like you are already using gnu-sed. woot!"
+#     sed -i 's/GITHUBEMAIL/'$email'/' ./homedir/.gitconfig
+#     sed -i 's/GITHUBUSER/'$githubuser'/' ./homedir/.gitconfig
+#   fi
+# fi
 
 # ###########################################################
 # Wallpaper
 # ###########################################################
-MD5_NEWWP=$(md5 img/wallpaper.jpg | awk '{print $4}')
-MD5_OLDWP=$(md5 /System/Library/CoreServices/DefaultDesktop.jpg | awk '{print $4}')
-if [[ "$MD5_NEWWP" != "$MD5_OLDWP" ]]; then
-  read -r -p "Do you want to use the project's custom desktop wallpaper? [y|N] " response
-  if [[ $response =~ (yes|y|Y) ]]; then
-    running "Set a custom wallpaper image"
-    # rm -rf ~/Library/Application Support/Dock/desktoppicture.db
-    bot "I will backup system wallpapers in ~/.dotfiles/img/"
-    sudo cp /System/Library/CoreServices/DefaultDesktop.jpg img/DefaultDesktop.jpg > /dev/null 2>&1
-    sudo cp /Library/Desktop\ Pictures/El\ Capitan.jpg img/El\ Capitan.jpg > /dev/null 2>&1
-    sudo cp /Library/Desktop\ Pictures/Sierra.jpg img/Sierra.jpg > /dev/null 2>&1
-    sudo cp /Library/Desktop\ Pictures/Sierra\ 2.jpg img/Sierra\ 2.jpg > /dev/null 2>&1
-    sudo rm -f /System/Library/CoreServices/DefaultDesktop.jpg > /dev/null 2>&1
-    sudo rm -f /Library/Desktop\ Pictures/El\ Capitan.jpg > /dev/null 2>&1
-    sudo rm -f /Library/Desktop\ Pictures/Sierra.jpg > /dev/null 2>&1
-    sudo rm -f /Library/Desktop\ Pictures/Sierra\ 2.jpg > /dev/null 2>&1
-    sudo cp ./img/wallpaper.jpg /System/Library/CoreServices/DefaultDesktop.jpg;
-    sudo cp ./img/wallpaper.jpg /Library/Desktop\ Pictures/Sierra.jpg;
-    sudo cp ./img/wallpaper.jpg /Library/Desktop\ Pictures/Sierra\ 2.jpg;
-    sudo cp ./img/wallpaper.jpg /Library/Desktop\ Pictures/El\ Capitan.jpg;ok
-  else
-    ok "skipped"
-  fi
-fi
+# MD5_NEWWP=$(md5 img/wallpaper.jpg | awk '{print $4}')
+# MD5_OLDWP=$(md5 /System/Library/CoreServices/DefaultDesktop.jpg | awk '{print $4}')
+# if [[ "$MD5_NEWWP" != "$MD5_OLDWP" ]]; then
+#   read -r -p "Do you want to use the project's custom desktop wallpaper? [y|N] " response
+#   if [[ $response =~ (yes|y|Y) ]]; then
+#     running "Set a custom wallpaper image"
+#     # rm -rf ~/Library/Application Support/Dock/desktoppicture.db
+#     bot "I will backup system wallpapers in ~/.dotfiles/img/"
+#     sudo cp /System/Library/CoreServices/DefaultDesktop.jpg img/DefaultDesktop.jpg > /dev/null 2>&1
+#     sudo cp /Library/Desktop\ Pictures/El\ Capitan.jpg img/El\ Capitan.jpg > /dev/null 2>&1
+#     sudo cp /Library/Desktop\ Pictures/Sierra.jpg img/Sierra.jpg > /dev/null 2>&1
+#     sudo cp /Library/Desktop\ Pictures/Sierra\ 2.jpg img/Sierra\ 2.jpg > /dev/null 2>&1
+#     sudo rm -f /System/Library/CoreServices/DefaultDesktop.jpg > /dev/null 2>&1
+#     sudo rm -f /Library/Desktop\ Pictures/El\ Capitan.jpg > /dev/null 2>&1
+#     sudo rm -f /Library/Desktop\ Pictures/Sierra.jpg > /dev/null 2>&1
+#     sudo rm -f /Library/Desktop\ Pictures/Sierra\ 2.jpg > /dev/null 2>&1
+#     sudo cp ./img/wallpaper.jpg /System/Library/CoreServices/DefaultDesktop.jpg;
+#     sudo cp ./img/wallpaper.jpg /Library/Desktop\ Pictures/Sierra.jpg;
+#     sudo cp ./img/wallpaper.jpg /Library/Desktop\ Pictures/Sierra\ 2.jpg;
+#     sudo cp ./img/wallpaper.jpg /Library/Desktop\ Pictures/El\ Capitan.jpg;ok
+#   else
+#     ok "skipped"
+#   fi
+# fi
 
 # ###########################################################
 # Install non-brew various tools (PRE-BREW Installs)
@@ -357,12 +357,12 @@ ok
 #   0 = off
 #   1 = on for specific sevices
 #   2 = on for essential services
-sudo defaults write /Library/Preferences/com.apple.alf globalstate -int 1
+# sudo defaults write /Library/Preferences/com.apple.alf globalstate -int 1
 
-# Enable firewall stealth mode (no response to ICMP / ping requests)
-# Source: https://support.apple.com/guide/mac-help/use-stealth-mode-to-keep-your-mac-more-secure-mh17133/mac
-#sudo defaults write /Library/Preferences/com.apple.alf stealthenabled -int 1
-sudo defaults write /Library/Preferences/com.apple.alf stealthenabled -int 1
+# # Enable firewall stealth mode (no response to ICMP / ping requests)
+# # Source: https://support.apple.com/guide/mac-help/use-stealth-mode-to-keep-your-mac-more-secure-mh17133/mac
+# #sudo defaults write /Library/Preferences/com.apple.alf stealthenabled -int 1
+# sudo defaults write /Library/Preferences/com.apple.alf stealthenabled -int 1
 
 # Enable firewall logging
 #sudo defaults write /Library/Preferences/com.apple.alf loggingenabled -int 1
@@ -393,16 +393,16 @@ sudo defaults write /Library/Preferences/com.apple.alf stealthenabled -int 1
 #sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.captive.control Active -bool false
 
 # Disable remote apple events
-sudo systemsetup -setremoteappleevents off
+# sudo systemsetup -setremoteappleevents off
 
-# Disable remote login
-sudo systemsetup -setremotelogin off
+# # Disable remote login
+# sudo systemsetup -setremotelogin off
 
-# Disable wake-on modem
-sudo systemsetup -setwakeonmodem off
+# # Disable wake-on modem
+# sudo systemsetup -setwakeonmodem off
 
-# Disable wake-on LAN
-sudo systemsetup -setwakeonnetworkaccess off
+# # Disable wake-on LAN
+# sudo systemsetup -setwakeonnetworkaccess off
 
 # Disable file-sharing via AFP or SMB
 # sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.AppleFileServer.plist
@@ -415,7 +415,7 @@ sudo systemsetup -setwakeonnetworkaccess off
 #sudo defaults write /Library/Preferences/com.apple.loginwindow RetriesUntilHint -int 0
 
 # Disable guest account login
-sudo defaults write /Library/Preferences/com.apple.loginwindow GuestEnabled -bool false
+# sudo defaults write /Library/Preferences/com.apple.loginwindow GuestEnabled -bool false
 
 # Automatically lock the login keychain for inactivity after 6 hours
 #security set-keychain-settings -t 21600 -l ~/Library/Keychains/login.keychain
@@ -478,24 +478,24 @@ sudo defaults write /Library/Preferences/com.apple.loginwindow GuestEnabled -boo
 # sudo scutil --set LocalHostName "antic"
 # sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "antic"
 
-#setting up the computer label & name
-read -p "What is this machine's label (Example: Paul's MacBook Pro ) ? " mac_os_label
-if [[ -z "$mac_os_label" ]]; then
-  echo "ERROR: Invalid MacOS label."
-  exit 1
-fi
+# #setting up the computer label & name
+# read -p "What is this machine's label (Example: Paul's MacBook Pro ) ? " mac_os_label
+# if [[ -z "$mac_os_label" ]]; then
+#   echo "ERROR: Invalid MacOS label."
+#   exit 1
+# fi
 
-read -p "What is this machine's name (Example: paul-macbook-pro ) ? " mac_os_name
-if [[ -z "$mac_os_name" ]]; then
-  echo "ERROR: Invalid MacOS name."
-  exit 1
-fi
+# read -p "What is this machine's name (Example: paul-macbook-pro ) ? " mac_os_name
+# if [[ -z "$mac_os_name" ]]; then
+#   echo "ERROR: Invalid MacOS name."
+#   exit 1
+# fi
 
-echo "Setting system Label and Name..."
-sudo scutil --set ComputerName "$mac_os_label"
-sudo scutil --set HostName "$mac_os_name"
-sudo scutil --set LocalHostName "$mac_os_name"
-sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "$mac_os_name"
+# echo "Setting system Label and Name..."
+# sudo scutil --set ComputerName "$mac_os_label"
+# sudo scutil --set HostName "$mac_os_name"
+# sudo scutil --set LocalHostName "$mac_os_name"
+# sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "$mac_os_name"
 
 # running "Disable smooth scrolling"
 # (Uncomment if you’re on an older Mac that messes up the animation)
@@ -553,31 +553,31 @@ sudo nvram boot-args="-v";ok
 running "allow 'locate' command"
 sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.locate.plist > /dev/null 2>&1;ok
 
-running "Set standby delay to 24 hours (default is 1 hour)"
-sudo pmset -a standbydelay 86400;ok
+running "Set standby delay to 6 hours (default is 1 hour)"
+sudo pmset -a standbydelay 21600;ok
 
-running "Disable the sound effects on boot"
-sudo nvram SystemAudioVolume=" ";ok
+# running "Disable the sound effects on boot"
+# sudo nvram SystemAudioVolume=" ";ok
 
-running "Menu bar: disable transparency"
-defaults write NSGlobalDomain AppleEnableMenuBarTransparency -bool false;ok
+# running "Menu bar: disable transparency"
+# defaults write NSGlobalDomain AppleEnableMenuBarTransparency -bool false;ok
 
-running "Menu bar: hide the Time Machine, Volume, User, and Bluetooth icons"
-for domain in ~/Library/Preferences/ByHost/com.apple.systemuiserver.*; do
-  defaults write "${domain}" dontAutoLoad -array \
-    "/System/Library/CoreServices/Menu Extras/TimeMachine.menu" \
-    "/System/Library/CoreServices/Menu Extras/Volume.menu" \
-    "/System/Library/CoreServices/Menu Extras/User.menu"
-done;
-defaults write com.apple.systemuiserver menuExtras -array \
-  "/System/Library/CoreServices/Menu Extras/Bluetooth.menu" \
-  "/System/Library/CoreServices/Menu Extras/AirPort.menu" \
-  "/System/Library/CoreServices/Menu Extras/Battery.menu" \
-  "/System/Library/CoreServices/Menu Extras/Clock.menu"
-ok
+# running "Menu bar: hide the Time Machine, Volume, User, and Bluetooth icons"
+# for domain in ~/Library/Preferences/ByHost/com.apple.systemuiserver.*; do
+#   defaults write "${domain}" dontAutoLoad -array \
+#     "/System/Library/CoreServices/Menu Extras/TimeMachine.menu" \
+#     "/System/Library/CoreServices/Menu Extras/Volume.menu" \
+#     "/System/Library/CoreServices/Menu Extras/User.menu"
+# done;
+# defaults write com.apple.systemuiserver menuExtras -array \
+#   "/System/Library/CoreServices/Menu Extras/Bluetooth.menu" \
+#   "/System/Library/CoreServices/Menu Extras/AirPort.menu" \
+#   "/System/Library/CoreServices/Menu Extras/Battery.menu" \
+#   "/System/Library/CoreServices/Menu Extras/Clock.menu"
+# ok
 
-running "Set highlight color to green"
-defaults write NSGlobalDomain AppleHighlightColor -string "0.764700 0.976500 0.568600";ok
+# running "Set highlight color to green"
+# defaults write NSGlobalDomain AppleHighlightColor -string "0.764700 0.976500 0.568600";ok
 
 running "Set sidebar icon size to medium"
 defaults write NSGlobalDomain NSTableViewDefaultSizeMode -int 2;ok
@@ -654,14 +654,14 @@ defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool
 defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1;ok
 
-running "Trackpad: map bottom right corner to right-click"
-defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadCornerSecondaryClick -int 2
-defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
-defaults -currentHost write NSGlobalDomain com.apple.trackpad.trackpadCornerClickBehavior -int 1
-defaults -currentHost write NSGlobalDomain com.apple.trackpad.enableSecondaryClick -bool true;ok
+# running "Trackpad: map bottom right corner to right-click"
+# defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadCornerSecondaryClick -int 2
+# defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
+# defaults -currentHost write NSGlobalDomain com.apple.trackpad.trackpadCornerClickBehavior -int 1
+# defaults -currentHost write NSGlobalDomain com.apple.trackpad.enableSecondaryClick -bool true;ok
 
-running "Disable 'natural' (Lion-style) scrolling"
-defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false;ok
+# running "Disable 'natural' (Lion-style) scrolling"
+# defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false;ok
 
 running "Increase sound quality for Bluetooth headphones/headsets"
 defaults write com.apple.BluetoothAudioAgent "Apple Bitpool Min (editable)" -int 40;ok
@@ -678,9 +678,9 @@ defaults write com.apple.universalaccess closeViewZoomFollowsFocus -bool true;ok
 running "Disable press-and-hold for keys in favor of key repeat"
 defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false;ok
 
-running "Set a blazingly fast keyboard repeat rate"
-defaults write NSGlobalDomain KeyRepeat -int 2
-defaults write NSGlobalDomain InitialKeyRepeat -int 10;ok
+# running "Set a blazingly fast keyboard repeat rate"
+# defaults write NSGlobalDomain KeyRepeat -int 2
+# defaults write NSGlobalDomain InitialKeyRepeat -int 10;ok
 
 running "Set language and text formats (english/US)"
 defaults write NSGlobalDomain AppleLanguages -array "en"
@@ -695,9 +695,9 @@ defaults write NSGlobalDomain AppleMetricUnits -bool true;ok
 bot "Configuring the Screen"
 ###############################################################################
 
-running "Require password immediately after sleep or screen saver begins"
-defaults write com.apple.screensaver askForPassword -int 1
-defaults write com.apple.screensaver askForPasswordDelay -int 0;ok
+# running "Require password immediately after sleep or screen saver begins"
+# defaults write com.apple.screensaver askForPassword -int 1
+# defaults write com.apple.screensaver askForPasswordDelay -int 0;ok
 
 running "Save screenshots to the desktop"
 defaults write com.apple.screencapture location -string "${HOME}/Desktop";ok
@@ -718,8 +718,8 @@ sudo defaults write /Library/Preferences/com.apple.windowserver DisplayResolutio
 bot "Finder Configs"
 ###############################################################################
 
-running "Keep folders on top when sorting by name (version 10.12 and later)"
-defaults write com.apple.finder _FXSortFoldersFirst -bool true
+# running "Keep folders on top when sorting by name (version 10.12 and later)"
+# defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
 running "Allow quitting via ⌘ + Q; doing so will also hide desktop icons"
 defaults write com.apple.finder QuitMenuItem -bool true;ok
@@ -873,28 +873,28 @@ find "${HOME}/Library/Application Support/Dock" -name "*-*.db" -maxdepth 1 -dele
 # Force a restart of Launchpad with the following command to apply the changes:
 #defaults write com.apple.dock ResetLaunchPad -bool TRUE;killall Dock
 
-bot "Configuring Hot Corners"
-# Possible values:
-#  0: no-op
-#  2: Mission Control
-#  3: Show application windows
-#  4: Desktop
-#  5: Start screen saver
-#  6: Disable screen saver
-#  7: Dashboard
-# 10: Put display to sleep
-# 11: Launchpad
-# 12: Notification Center
+# bot "Configuring Hot Corners"
+# # Possible values:
+# #  0: no-op
+# #  2: Mission Control
+# #  3: Show application windows
+# #  4: Desktop
+# #  5: Start screen saver
+# #  6: Disable screen saver
+# #  7: Dashboard
+# # 10: Put display to sleep
+# # 11: Launchpad
+# # 12: Notification Center
 
-running "Top left screen corner → Mission Control"
-defaults write com.apple.dock wvous-tl-corner -int 2
-defaults write com.apple.dock wvous-tl-modifier -int 0;ok
-running "Top right screen corner → Desktop"
-defaults write com.apple.dock wvous-tr-corner -int 4
-defaults write com.apple.dock wvous-tr-modifier -int 0;ok
-running "Bottom right screen corner → Start screen saver"
-defaults write com.apple.dock wvous-br-corner -int 5
-defaults write com.apple.dock wvous-br-modifier -int 0;ok
+# running "Top left screen corner → Mission Control"
+# defaults write com.apple.dock wvous-tl-corner -int 2
+# defaults write com.apple.dock wvous-tl-modifier -int 0;ok
+# running "Top right screen corner → Desktop"
+# defaults write com.apple.dock wvous-tr-corner -int 4
+# defaults write com.apple.dock wvous-tr-modifier -int 0;ok
+# running "Bottom right screen corner → Start screen saver"
+# defaults write com.apple.dock wvous-br-corner -int 5
+# defaults write com.apple.dock wvous-br-modifier -int 0;ok
 
 ###############################################################################
 bot "Configuring Safari & WebKit"
@@ -960,8 +960,8 @@ defaults write com.apple.mail DraftsViewerAttributes -dict-add "SortOrder" -stri
 running "Disable inline attachments (just show the icons)"
 defaults write com.apple.mail DisableInlineAttachmentViewing -bool true;ok
 
-running "Disable automatic spell checking"
-defaults write com.apple.mail SpellCheckingBehavior -string "NoSpellCheckingEnabled";ok
+# running "Disable automatic spell checking"
+# defaults write com.apple.mail SpellCheckingBehavior -string "NoSpellCheckingEnabled";ok
 
 ###############################################################################
 bot "Spotlight"
@@ -1132,8 +1132,8 @@ defaults write com.apple.ActivityMonitor IconType -int 3;ok
 bot "Address Book, Dashboard, iCal, TextEdit, and Disk Utility"
 ###############################################################################
 
-running "Enable the debug menu in Address Book"
-defaults write com.apple.addressbook ABShowDebugMenu -bool true;ok
+# running "Enable the debug menu in Address Book"
+# defaults write com.apple.addressbook ABShowDebugMenu -bool true;ok
 
 running "Enable Dashboard dev mode (allows keeping widgets on the desktop)"
 defaults write com.apple.dashboard devmode -bool true;ok
@@ -1141,9 +1141,9 @@ defaults write com.apple.dashboard devmode -bool true;ok
 running "Use plain text mode for new TextEdit documents"
 defaults write com.apple.TextEdit RichText -int 0;ok
 
-running "Open and save files as UTF-8 in TextEdit"
-defaults write com.apple.TextEdit PlainTextEncoding -int 4
-defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4;ok
+# running "Open and save files as UTF-8 in TextEdit"
+# defaults write com.apple.TextEdit PlainTextEncoding -int 4
+# defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4;ok
 
 running "Enable the debug menu in Disk Utility"
 defaults write com.apple.DiskUtility DUDebugMenuEnabled -bool true
@@ -1163,8 +1163,8 @@ defaults write com.apple.appstore ShowDebugMenu -bool true;ok
 bot "Messages"
 ###############################################################################
 
-running "Disable automatic emoji substitution (i.e. use plain text smileys)"
-defaults write com.apple.messageshelper.MessageController SOInputLineSettings -dict-add "automaticEmojiSubstitutionEnablediMessage" -bool false;ok
+# running "Disable automatic emoji substitution (i.e. use plain text smileys)"
+# defaults write com.apple.messageshelper.MessageController SOInputLineSettings -dict-add "automaticEmojiSubstitutionEnablediMessage" -bool false;ok
 
 running "Disable smart quotes as it’s annoying for messages that contain code"
 defaults write com.apple.messageshelper.MessageController SOInputLineSettings -dict-add "automaticQuoteSubstitutionEnabled" -bool false;ok
